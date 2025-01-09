@@ -46,7 +46,11 @@ func createWriter(w io.Writer, header *Header) (*Writer, error) {
 
 		header.Del("Content-Transfer-Encoding")
 	} else {
-		wc, err := encodingWriter(header.Get("Content-Transfer-Encoding"), ww.w)
+
+		attached := strings.Contains(strings.ToLower(header.Get("Content-Disposition")), "attachment")
+
+		wc, err := encodingWriter(header.Get("Content-Transfer-Encoding"), attached, w)
+
 		if err != nil {
 			return nil, err
 		}
