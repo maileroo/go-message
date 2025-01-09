@@ -3,6 +3,7 @@ package message
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"io"
 	"math"
 	"strings"
@@ -40,12 +41,16 @@ func New(header Header, body io.Reader) (*Entity, error) {
 	// e.g. "quoted-printable". So we just ignore it for multipart.
 	// See https://github.com/emersion/go-message/issues/48
 	if !strings.HasPrefix(mediaType, "multipart/") {
+
 		enc := header.Get("Content-Transfer-Encoding")
-		if decoded, encErr := encodingReader(enc, body); encErr != nil {
+		attached := strings.Contains(strings.ToLower(header.Get("Content-Disposition")), "attachment")
+		
+		if decoded, encErr := encodingReader(enc, attached, body); encErr != nil {
 			err = UnknownEncodingError{encErr}
 		} else {
 			body = decoded
 		}
+
 	}
 
 	// RFC 2046 section 4.1.2: charset only applies to text/*
