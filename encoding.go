@@ -26,11 +26,15 @@ func IsUnknownEncoding(err error) bool {
 	return errors.As(err, new(UnknownEncodingError))
 }
 
-func encodingReader(enc string, r io.Reader) (io.Reader, error) {
+func encodingReader(enc string, attached bool, r io.Reader) (io.Reader, error) {
 	var dec io.Reader
 	switch strings.ToLower(enc) {
 	case "quoted-printable":
-		dec = quotedprintable.NewReader(r)
+		if attached {
+		    dec = r
+		} else {
+		    dec = quotedprintable.NewReader(r)
+		}
 	case "base64":
 		wrapped := &whitespaceReplacingReader{wrapped: r}
 		dec = base64.NewDecoder(base64.StdEncoding, wrapped)
